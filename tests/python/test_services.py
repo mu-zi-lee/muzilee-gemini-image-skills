@@ -7,6 +7,7 @@ from pathlib import Path
 from muzilee_gemini_image_skills.application.artifact_store import ArtifactStore
 from muzilee_gemini_image_skills.application.capability_service import CapabilityService
 from muzilee_gemini_image_skills.application.setup_service import SetupService
+from muzilee_gemini_image_skills.cli.main import build_parser
 from muzilee_gemini_image_skills.contracts.protocol_loader import load_protocol_catalog
 
 
@@ -29,7 +30,7 @@ class ServiceTests(unittest.TestCase):
             }
         )
         self.assertEqual(payload["setup"]["model"], "quick")
-        self.assertEqual(payload["input"]["output_mode"], "preview")
+        self.assertEqual(payload["input"]["output_mode"], "auto")
 
     def test_capability_service_only_requires_task_capability_for_preview_image_flow(self) -> None:
         service = CapabilityService(self.catalog)
@@ -42,6 +43,26 @@ class ServiceTests(unittest.TestCase):
             }
         )
         self.assertEqual(required, ["feature:switch_model", "task:generate_image"])
+
+    def test_artifact_store_preserves_watermark_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            store = ArtifactStore(Path(temp_dir))
+            result = store.persist_worker_payload(
+                task_type="generate_image",
+                task_id="abc12345",
+                payload={
+                    "image_data_url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO8lW1kAAAAASUVORK5CYII=",
+                    "watermark": {
+                        "requested_mode": "auto",
+                        "actual_source": "preview",
+                        "status": "skipped",
+                        "reason": "not_detected",
+                        "method": "gemini_template_unblend",
+                    },
+                },
+            )
+            self.assertEqual(result["watermark"]["requested_mode"], "auto")
+            self.assertIn("file_path", result)
 
     def test_artifact_store_persists_image_payload(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -57,6 +78,11 @@ class ServiceTests(unittest.TestCase):
             self.assertIn("file_path", result)
             self.assertEqual(result["mime_type"], "image/png")
             self.assertTrue(Path(result["file_path"]).exists())
+
+    def test_cli_image_generate_defaults_to_auto_output_mode(self) -> None:
+        parser = build_parser()
+        args = parser.parse_args(["image", "generate", "poster"])
+        self.assertEqual(args.output_mode, "auto")
 
 
 if __name__ == "__main__":

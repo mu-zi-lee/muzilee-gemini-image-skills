@@ -1,5 +1,5 @@
 import { clickNewChat } from '../features/chat/new_chat.js';
-import { getLatestImagePayload } from '../features/image/extract_image.js';
+import { getLatestImageTaskResult } from '../features/image/image_result.js';
 import { switchModel } from '../features/model/switch_model.js';
 import { fillPrompt, clickSend } from '../features/prompt/fill_prompt.js';
 import { getLatestResponseText, waitUntilDone } from '../features/response/extract_text.js';
@@ -28,7 +28,13 @@ export function createTaskExecutor({ selectors, catalog, hoverDelayMs, captureCo
     }
 
     if (task.type === 'download_latest_image') {
-      return getLatestImagePayload(selectors);
+      return getLatestImageTaskResult({
+        selectors,
+        captureController,
+        hoverDelayMs,
+        timeoutMs,
+        requestedMode: 'auto',
+      });
     }
 
     if (task.type === 'send_message') {
@@ -66,8 +72,14 @@ export function createTaskExecutor({ selectors, catalog, hoverDelayMs, captureCo
       await sleep(300);
       clickSend(selectors);
       await waitUntilDone(selectors, timeoutMs);
-      const preview = await getLatestImagePayload(selectors);
-      return { ...preview, setup };
+      const imageResult = await getLatestImageTaskResult({
+        selectors,
+        captureController,
+        hoverDelayMs,
+        timeoutMs,
+        requestedMode: taskInput.output_mode || 'auto',
+      });
+      return { ...imageResult, setup };
     }
 
     throw new Error(`unsupported_task_type:${task.type}`);

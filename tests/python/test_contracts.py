@@ -6,7 +6,7 @@ from muzilee_gemini_image_skills.contracts.task_models import TaskValidationErro
 
 
 class TaskEnvelopeTests(unittest.TestCase):
-    def test_generate_image_defaults_to_preview_mode(self) -> None:
+    def test_generate_image_defaults_to_auto_mode(self) -> None:
         envelope = parse_task_envelope(
             {
                 "type": "generate_image",
@@ -15,7 +15,7 @@ class TaskEnvelopeTests(unittest.TestCase):
             },
             default_timeout=180,
         )
-        self.assertEqual(envelope.task_input["output_mode"], "preview")
+        self.assertEqual(envelope.task_input["output_mode"], "auto")
         self.assertEqual(envelope.timeout_seconds, 180)
 
     def test_missing_message_raises_validation_error(self) -> None:

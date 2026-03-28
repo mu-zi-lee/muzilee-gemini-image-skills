@@ -1,5 +1,6 @@
 import { createDownloadCaptureController } from './bridge/download_capture.js';
 import { SELECTORS } from './dom/selectors.js';
+import { createPreviewWatermarkReplacementController } from './features/image/preview_watermark_replacement.js';
 import { buildCapabilities, createHeartbeatSender } from './runtime/heartbeat.js';
 import { createTaskExecutor } from './runtime/execute_task.js';
 import { startTaskLoop } from './runtime/task_loop.js';
@@ -22,6 +23,11 @@ export function main({ catalog }) {
 
   const captureController = createDownloadCaptureController();
   captureController.injectPageBridge();
+  const previewReplacementController = createPreviewWatermarkReplacementController({
+    selectors: SELECTORS,
+    logger: console,
+  });
+  previewReplacementController.install();
 
   const busyState = { busy: false };
   const executeTask = createTaskExecutor({
@@ -58,4 +64,3 @@ export function main({ catalog }) {
     taskPollIntervalMs: config.taskPollIntervalMs,
   });
 }
-

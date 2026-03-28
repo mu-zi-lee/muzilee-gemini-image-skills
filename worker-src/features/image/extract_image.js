@@ -1,5 +1,12 @@
 import { sleep } from '../../dom/wait.js';
 
+function inferMimeTypeFromDataUrl(dataUrl, fallback = 'image/png') {
+  if (typeof dataUrl !== 'string' || !dataUrl.startsWith('data:')) return fallback;
+  const separatorIndex = dataUrl.indexOf(';');
+  if (separatorIndex <= 5) return fallback;
+  return dataUrl.slice(5, separatorIndex) || fallback;
+}
+
 export function getLatestImageElement(selectors) {
   const selector = selectors.images[0];
   const images = Array.from(document.querySelectorAll(selector));
@@ -10,8 +17,9 @@ export function getLatestImageElement(selectors) {
 }
 
 export function getImageContainer(image) {
+  const documentBody = typeof document !== 'undefined' ? document.body : null;
   let current = image;
-  while (current && current !== document.body) {
+  while (current && current !== documentBody) {
     if (current.classList && current.classList.contains('image-container')) {
       return current;
     }
@@ -51,9 +59,9 @@ export async function getLatestImagePayload(selectors) {
   return {
     image_url: image.src,
     image_data_url: imageDataUrl,
+    mime_type: inferMimeTypeFromDataUrl(imageDataUrl),
     width: image.naturalWidth || image.width || 0,
     height: image.naturalHeight || image.height || 0,
     source: 'preview',
   };
 }
-

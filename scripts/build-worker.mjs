@@ -12,6 +12,7 @@ const packageFile = path.join(projectRoot, 'package.json');
 
 const moduleCache = new Map();
 const orderedModules = [];
+const importPattern = /^import\s+(?:[\s\S]*?\s+from\s+)?['"](.+?)['"];?\s*$/gm;
 
 async function collectModules(filePath) {
   const absolutePath = path.resolve(filePath);
@@ -21,7 +22,7 @@ async function collectModules(filePath) {
   moduleCache.set(absolutePath, true);
 
   const source = await fs.readFile(absolutePath, 'utf-8');
-  const importMatches = [...source.matchAll(/^import\s+.+?\s+from\s+['"](.+?)['"];?\s*$/gm)];
+  const importMatches = [...source.matchAll(importPattern)];
   for (const match of importMatches) {
     const dependencyPath = match[1];
     const absoluteDependencyPath = path.resolve(path.dirname(absolutePath), dependencyPath);
@@ -36,7 +37,7 @@ async function collectModules(filePath) {
 
 function transformModule(source) {
   return source
-    .replace(/^import\s+.+?\s+from\s+['"](.+?)['"];?\s*$/gm, '')
+    .replace(importPattern, '')
     .replace(/^export\s+async\s+function\s+/gm, 'async function ')
     .replace(/^export\s+function\s+/gm, 'function ')
     .replace(/^export\s+const\s+/gm, 'const ')
@@ -61,6 +62,8 @@ async function build() {
 // @match        https://gemini.google.com/*
 // @grant        GM_xmlhttpRequest
 // @connect      127.0.0.1
+// @connect      googleusercontent.com
+// @connect      *.googleusercontent.com
 // ==/UserScript==
 
 (() => {

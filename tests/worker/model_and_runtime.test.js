@@ -27,7 +27,7 @@ test('buildCapabilities adds full size feature only when bridge is ready', () =>
   const withBridge = buildCapabilities(catalog, { bridgeReady: true });
   const withoutBridge = buildCapabilities(catalog, { bridgeReady: false });
 
-  assert.equal(withBridge.includes('feature:download_full_size'), false);
+  assert.equal(withBridge.includes('feature:download_full_size'), true);
   assert.equal(withoutBridge.includes('feature:download_full_size'), false);
 });
 
@@ -44,5 +44,8 @@ test('bridge script captures downloads without allowing the browser download to 
   assert.match(script, /blockNextAnchorClick = true;/);
   assert.match(script, /if \(blockNextAnchorClick\) \{\s*blockNextAnchorClick = false;\s*return;\s*\}/);
   assert.match(script, /void captureHref\(href, filename\);\s*return;/);
-  assert.match(script, /fetch\(href, \{ credentials: 'include' \}\)/);
+  assert.match(script, /document\.addEventListener\('click',[\s\S]*event\.preventDefault\(\);[\s\S]*event\.stopImmediatePropagation\(\);/);
+  assert.match(script, /window\.open = function\(url, \.\.\.args\)/);
+  assert.match(script, /post\(\{ type: 'download-requested', payload: \{ href, filename \} \}\);/);
+  assert.doesNotMatch(script, /fetch\(href, \{ credentials: 'include' \}\)/);
 });

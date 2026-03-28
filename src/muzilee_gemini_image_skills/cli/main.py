@@ -50,8 +50,8 @@ def build_parser() -> argparse.ArgumentParser:
     image_generate.add_argument(
         "--output-mode",
         choices=output_modes,
-        default="preview",
-        help="Preview-only mode. `auto` and `full_size` are accepted for compatibility but treated as `preview`.",
+        default="auto",
+        help="`auto` prefers full-size Gemini download and falls back to preview when needed.",
     )
     image_generate.add_argument("--model", choices=model_choices)
     image_generate.add_argument("--new-chat", action="store_true")

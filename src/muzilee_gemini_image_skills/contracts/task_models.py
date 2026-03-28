@@ -5,8 +5,8 @@ from typing import Any, Dict
 
 from .error_codes import TASK_VALIDATION_ERROR
 from .task_types import (
+    OUTPUT_MODE_AUTO,
     OUTPUT_MODES,
-    OUTPUT_MODE_PREVIEW,
     TASK_DOWNLOAD_LATEST_IMAGE,
     TASK_GENERATE_IMAGE,
     TASK_NEW_CHAT,
@@ -78,7 +78,7 @@ def parse_task_envelope(payload: Dict[str, Any], default_timeout: int) -> TaskEn
     if task_type == TASK_GENERATE_IMAGE:
         if not str(task_input.get("prompt", "")).strip():
             raise TaskValidationError("missing_prompt")
-        output_mode = str(task_input.get("output_mode", OUTPUT_MODE_PREVIEW)).strip() or OUTPUT_MODE_PREVIEW
+        output_mode = str(task_input.get("output_mode", OUTPUT_MODE_AUTO)).strip() or OUTPUT_MODE_AUTO
         if output_mode not in OUTPUT_MODES:
             raise TaskValidationError("invalid_output_mode")
         task_input["output_mode"] = output_mode
