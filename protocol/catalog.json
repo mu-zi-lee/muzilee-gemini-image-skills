@@ -1,0 +1,56 @@
+{
+  "service_name": "muzilee-gemini-image-skills",
+  "task_types": [
+    "send_message",
+    "generate_image",
+    "new_chat",
+    "switch_model",
+    "upload_reference_images",
+    "download_latest_image"
+  ],
+  "output_modes": [
+    "preview",
+    "full_size",
+    "auto"
+  ],
+  "models": {
+    "canonical": [
+      "pro",
+      "quick",
+      "think"
+    ],
+    "default_for_task": {
+      "generate_image": "pro"
+    },
+    "aliases": {
+      "pro": [
+        "pro"
+      ],
+      "quick": [
+        "quick",
+        "fast",
+        "flash"
+      ],
+      "think": [
+        "think",
+        "thinking"
+      ]
+    }
+  },
+  "capabilities": {
+    "tasks": {
+      "send_message": "task:send_message",
+      "generate_image": "task:generate_image",
+      "new_chat": "task:new_chat",
+      "switch_model": "task:switch_model",
+      "upload_reference_images": "task:upload_reference_images",
+      "download_latest_image": "task:download_latest_image"
+    },
+    "features": {
+      "new_chat": "feature:new_chat",
+      "switch_model": "feature:switch_model",
+      "upload_reference_images": "feature:upload_reference_images",
+      "download_full_size": "feature:download_full_size"
+    }
+  }
+}

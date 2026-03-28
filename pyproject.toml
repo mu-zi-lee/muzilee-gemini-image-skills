@@ -1,0 +1,20 @@
+[project]
+name = "muzilee-gemini-image-skills"
+version = "0.1.0"
+description = "A structured Gemini web skill driven by a local Python daemon and a browser userscript."
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.scripts]
+muzilee-gemini-skill = "muzilee_gemini_image_skills.cli.main:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+package = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/muzilee_gemini_image_skills"]

@@ -1,0 +1,10 @@
+{
+  "name": "muzilee-gemini-image-skills",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:worker": "node ./scripts/build-worker.mjs",
+    "test:worker": "node --test tests/worker/*.test.js"
+  }
+}

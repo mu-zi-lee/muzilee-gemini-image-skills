@@ -1,0 +1,12 @@
+TASK_VALIDATION_ERROR = "task_validation_error"
+INVALID_JSON = "invalid_json"
+MISSING_WORKER_ID = "missing_worker_id"
+UNKNOWN_TASK = "unknown_task"
+TASK_TIMEOUT = "timeout"
+MISSING_COMPATIBLE_WORKER = "no_compatible_worker"
+CONNECTION_FAILED = "connection_failed"
+INVALID_MODEL = "invalid_model"
+MISSING_REFERENCE_IMAGES = "missing_reference_images"
+MISSING_MESSAGE = "missing_message"
+MISSING_PROMPT = "missing_prompt"
+
