@@ -3,7 +3,7 @@ import { SELECTORS } from './dom/selectors.js';
 import { buildCapabilities, createHeartbeatSender } from './runtime/heartbeat.js';
 import { createTaskExecutor } from './runtime/execute_task.js';
 import { startTaskLoop } from './runtime/task_loop.js';
-import { request } from './transport/http.js';
+import { fetchBlob, request } from './transport/http.js';
 
 export function main({ catalog }) {
   if (window.top !== window.self) {
@@ -28,6 +28,7 @@ export function main({ catalog }) {
     selectors: SELECTORS,
     catalog,
     hoverDelayMs: config.hoverDelayMs,
+    fetchBlob,
     captureController,
     logger: console.warn,
   });
@@ -58,4 +59,3 @@ export function main({ catalog }) {
     taskPollIntervalMs: config.taskPollIntervalMs,
   });
 }
-

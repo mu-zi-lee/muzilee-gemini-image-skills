@@ -51,7 +51,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--output-mode",
         choices=output_modes,
         default="preview",
-        help="Preview-only mode. `auto` and `full_size` are accepted for compatibility but treated as `preview`.",
+        help="Image output mode. `full_size` clicks the download button for the original image; `preview` extracts from the DOM preview.",
     )
     image_generate.add_argument("--model", choices=model_choices)
     image_generate.add_argument("--new-chat", action="store_true")

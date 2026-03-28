@@ -41,9 +41,7 @@ class SetupService:
         if task_type == TASK_GENERATE_IMAGE:
             if not prepared_setup["model"]:
                 prepared_setup["model"] = self.default_generate_image_model
-            # Preview-only mode: keep accepting legacy values, but always route image reads
-            # through the same preview extraction path as the older muzi-skill.
-            prepared_input["output_mode"] = OUTPUT_MODE_PREVIEW
+            prepared_input["output_mode"] = task_input.get("output_mode") or OUTPUT_MODE_PREVIEW
         elif task_type == TASK_SWITCH_MODEL:
             prepared_input["model"] = self.normalize_model_name(task_input.get("model"))
         elif task_type == "upload_reference_images":

@@ -566,6 +566,9 @@ function buildCapabilities(catalog, { bridgeReady }) {
     catalog.capabilities.features.switch_model,
     catalog.capabilities.features.upload_reference_images,
   ];
+  if (bridgeReady) {
+    features.push(catalog.capabilities.features.download_full_size);
+  }
   return [...tasks, ...features];
 }
 
@@ -668,6 +671,73 @@ async function getLatestImagePayload(selectors) {
   };
 }
 
+
+
+// worker-src/features/image/download_fullsize.js
+
+
+
+async function revealDownloadBtn(selectors, hoverDelayMs) {
+  const image = getLatestImageElement(selectors);
+  const container = getImageContainer(image);
+  const rect = image.getBoundingClientRect();
+  const hoverTarget = container || image;
+
+  image.scrollIntoView({ behavior: 'instant', block: 'center' });
+
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    ['mouseenter', 'mousemove', 'mouseover'].forEach((type) => {
+      hoverTarget.dispatchEvent(new MouseEvent(type, {
+        bubbles: true,
+        clientX: rect.left + rect.width / 2,
+        clientY: rect.top + rect.height / 2,
+      }));
+    });
+    await sleep(hoverDelayMs);
+    const btn = queryVisible(selectors.fullSizeDownloadBtn);
+    if (btn) return { image, btn };
+  }
+  return { image, btn: null };
+}
+
+function findDownloadUrl(btn, image) {
+  let node = btn;
+  while (node && node !== document.body) {
+    if (node.tagName === 'A' && node.href) return node.href;
+    node = node.parentElement;
+  }
+  return image.src || null;
+}
+
+async function downloadLatestImageFullSize(selectors, fetchBlob, hoverDelayMs, timeoutMs) {
+  const { image, btn } = await revealDownloadBtn(selectors, hoverDelayMs);
+
+  const downloadUrl = btn ? findDownloadUrl(btn, image) : image.src;
+  if (!downloadUrl) {
+    throw new Error('full_size_download_url_not_found');
+  }
+
+  // Use GM_xmlhttpRequest-backed fetchBlob to bypass CSP/CORS
+  const blob = await fetchBlob(downloadUrl, timeoutMs);
+  const mimeType = blob.type || 'image/png';
+
+  const imageDataUrl = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('file_reader_error'));
+    reader.readAsDataURL(blob);
+  });
+
+  return {
+    image_url: downloadUrl,
+    image_data_url: imageDataUrl,
+    filename: '',
+    mime_type: mimeType,
+    width: image.naturalWidth || image.width || 0,
+    height: image.naturalHeight || image.height || 0,
+    source: 'full_size',
+  };
+}
 
 
 // worker-src/features/response/extract_text.js
@@ -909,7 +979,22 @@ async function uploadReferenceImages(selectors, referenceImages, logger = consol
 
 
 
-function createTaskExecutor({ selectors, catalog, hoverDelayMs, captureController, logger = console.warn }) {
+
+function createTaskExecutor({
+  selectors,
+  catalog,
+  hoverDelayMs,
+  fetchBlob,
+  captureController,
+  logger = console.warn,
+}) {
+  async function getLatestImageResult() {
+    if (captureController?.isBridgeReady()) {
+      return downloadLatestImageFullSize(selectors, fetchBlob, hoverDelayMs, 60000);
+    }
+    return getLatestImagePayload(selectors);
+  }
+
   return async function executeTask(task) {
     const payload = task.payload || {};
     const taskInput = payload.input || {};
@@ -930,7 +1015,7 @@ function createTaskExecutor({ selectors, catalog, hoverDelayMs, captureControlle
     }
 
     if (task.type === 'download_latest_image') {
-      return getLatestImagePayload(selectors);
+      return getLatestImageResult();
     }
 
     if (task.type === 'send_message') {
@@ -968,8 +1053,11 @@ function createTaskExecutor({ selectors, catalog, hoverDelayMs, captureControlle
       await sleep(300);
       clickSend(selectors);
       await waitUntilDone(selectors, timeoutMs);
-      const preview = await getLatestImagePayload(selectors);
-      return { ...preview, setup };
+      const outputMode = taskInput.output_mode || 'preview';
+      const imagePayload = outputMode === 'full_size'
+        ? await getLatestImageResult()
+        : await getLatestImagePayload(selectors);
+      return { ...imagePayload, setup };
     }
 
     throw new Error(`unsupported_task_type:${task.type}`);
@@ -1024,6 +1112,27 @@ async function startTaskLoop({ idlePollIntervalMs, taskPollIntervalMs, busyState
 
 
 // worker-src/transport/http.js
+function fetchBlob(url, timeoutMs) {
+  return new Promise((resolve, reject) => {
+    GM_xmlhttpRequest({
+      method: 'GET',
+      url,
+      responseType: 'blob',
+      timeout: timeoutMs,
+      onload: (response) => {
+        const blob = response.response;
+        if (!blob) {
+          reject(new Error('fetch_blob_empty'));
+          return;
+        }
+        resolve(blob);
+      },
+      ontimeout: () => reject(new Error('fetch_blob_timeout')),
+      onerror: (error) => reject(new Error(String(error.error || 'fetch_blob_error'))),
+    });
+  });
+}
+
 function request(baseUrl, method, path, payload, timeoutMs) {
   return new Promise((resolve, reject) => {
     GM_xmlhttpRequest({
@@ -1077,6 +1186,7 @@ function main({ catalog }) {
     selectors: SELECTORS,
     catalog,
     hoverDelayMs: config.hoverDelayMs,
+    fetchBlob,
     captureController,
     logger: console.warn,
   });
@@ -1107,7 +1217,6 @@ function main({ catalog }) {
     taskPollIntervalMs: config.taskPollIntervalMs,
   });
 }
-
 
 
   main({ catalog: WORKER_PROTOCOL_CATALOG });

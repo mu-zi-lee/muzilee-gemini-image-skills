@@ -9,6 +9,9 @@ export function buildCapabilities(catalog, { bridgeReady }) {
     catalog.capabilities.features.switch_model,
     catalog.capabilities.features.upload_reference_images,
   ];
+  if (bridgeReady) {
+    features.push(catalog.capabilities.features.download_full_size);
+  }
   return [...tasks, ...features];
 }
 

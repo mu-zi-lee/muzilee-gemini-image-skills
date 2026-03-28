@@ -27,7 +27,7 @@ test('buildCapabilities adds full size feature only when bridge is ready', () =>
   const withBridge = buildCapabilities(catalog, { bridgeReady: true });
   const withoutBridge = buildCapabilities(catalog, { bridgeReady: false });
 
-  assert.equal(withBridge.includes('feature:download_full_size'), false);
+  assert.equal(withBridge.includes('feature:download_full_size'), true);
   assert.equal(withoutBridge.includes('feature:download_full_size'), false);
 });
 
