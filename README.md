@@ -1,6 +1,7 @@
 # Muzilee Gemini Image Skills
 
-正式版 Gemini Web Skill。
+正式版 Gemini Web Skill。 
+欢迎加入 Linux DO https://linux.do/
 
 它采用：
 
