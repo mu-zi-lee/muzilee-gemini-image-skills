@@ -117,7 +117,7 @@ class TaskService:
             raise TaskServiceError(status=HTTPStatus.NOT_FOUND, error=UNKNOWN_TASK) from exc
 
         result_payload = (
-            self.artifact_store.persist_worker_payload(task.task_type, task.task_id, payload)
+            self.artifact_store.persist_worker_payload(task.task_type, task.task_id, payload, task.payload)
             if ok
             else dict(payload)
         )
@@ -143,4 +143,3 @@ class TaskService:
         stale_task_ids = self.worker_registry.expire_stale_workers()
         if stale_task_ids:
             self.task_queue.requeue_tasks(stale_task_ids)
-

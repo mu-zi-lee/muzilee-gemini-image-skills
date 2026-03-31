@@ -49,6 +49,11 @@ class ServiceTests(unittest.TestCase):
             result = store.persist_worker_payload(
                 task_type="generate_image",
                 task_id="abc12345",
+                task_payload={
+                    "input": {
+                        "prompt": "A cozy red cabin in snowy mountains at sunrise",
+                    }
+                },
                 payload={
                     "image_data_url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO8lW1kAAAAASUVORK5CYII=",
                     "source": "preview",
@@ -57,6 +62,10 @@ class ServiceTests(unittest.TestCase):
             self.assertIn("file_path", result)
             self.assertEqual(result["mime_type"], "image/png")
             self.assertTrue(Path(result["file_path"]).exists())
+            self.assertRegex(
+                Path(result["file_path"]).name,
+                r"^a_cozy_red_cabin_in_snowy_\d+_abc12345\.png$",
+            )
 
 
 if __name__ == "__main__":
