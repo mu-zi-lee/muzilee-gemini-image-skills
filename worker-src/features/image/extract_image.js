@@ -1,4 +1,5 @@
 import { sleep } from '../../dom/wait.js';
+import { removeWatermarkFromDataUrl } from './remove_watermark.js';
 
 export function getLatestImageElement(selectors) {
   const selector = selectors.images[0];
@@ -44,16 +45,41 @@ export async function extractImageDataUrl(selectors, url) {
   });
 }
 
-export async function getLatestImagePayload(selectors) {
-  await sleep(1500);
-  const image = getLatestImageElement(selectors);
-  const imageDataUrl = await extractImageDataUrl(selectors, image.src);
-  return {
+export function buildPreviewImagePayload(image, originalImageDataUrl, processedPayload = {}) {
+  const payload = {
     image_url: image.src,
-    image_data_url: imageDataUrl,
+    image_data_url: processedPayload.image_data_url || originalImageDataUrl,
     width: image.naturalWidth || image.width || 0,
     height: image.naturalHeight || image.height || 0,
     source: 'preview',
+    watermark_removed: Boolean(processedPayload.watermark_removed),
   };
+
+  if (processedPayload.watermark_position) {
+    payload.watermark_position = processedPayload.watermark_position;
+  }
+  if (processedPayload.watermark_config) {
+    payload.watermark_config = processedPayload.watermark_config;
+  }
+
+  return payload;
 }
 
+export async function createPreviewImagePayload(
+  image,
+  selectors,
+  {
+    extractDataUrl = extractImageDataUrl,
+    processWatermark = removeWatermarkFromDataUrl,
+  } = {},
+) {
+  const originalImageDataUrl = await extractDataUrl(selectors, image.src);
+  const processedPayload = await processWatermark(originalImageDataUrl);
+  return buildPreviewImagePayload(image, originalImageDataUrl, processedPayload);
+}
+
+export async function getLatestImagePayload(selectors, dependencies) {
+  await sleep(1500);
+  const image = getLatestImageElement(selectors);
+  return createPreviewImagePayload(image, selectors, dependencies);
+}

@@ -7,7 +7,7 @@ from typing import Any, Dict, List
 
 from ..contracts.error_codes import INVALID_MODEL
 from ..contracts.protocol_loader import get_model_alias_mapping
-from ..contracts.task_types import OUTPUT_MODE_PREVIEW, TASK_GENERATE_IMAGE, TASK_SWITCH_MODEL
+from ..contracts.task_types import OUTPUT_MODE_AUTO, OUTPUT_MODE_PREVIEW, TASK_GENERATE_IMAGE, TASK_SWITCH_MODEL
 
 
 class SetupService:
@@ -41,7 +41,8 @@ class SetupService:
         if task_type == TASK_GENERATE_IMAGE:
             if not prepared_setup["model"]:
                 prepared_setup["model"] = self.default_generate_image_model
-            prepared_input["output_mode"] = task_input.get("output_mode") or OUTPUT_MODE_PREVIEW
+            output_mode = task_input.get("output_mode") or OUTPUT_MODE_PREVIEW
+            prepared_input["output_mode"] = OUTPUT_MODE_PREVIEW if output_mode == OUTPUT_MODE_AUTO else output_mode
         elif task_type == TASK_SWITCH_MODEL:
             prepared_input["model"] = self.normalize_model_name(task_input.get("model"))
         elif task_type == "upload_reference_images":

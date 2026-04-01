@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { buildCapabilities } from '../../worker-src/runtime/heartbeat.js';
 import { buildPageBridgeScriptSource } from '../../worker-src/bridge/download_capture.js';
 import { matchesModel, normalizeModelName } from '../../worker-src/features/model/switch_model.js';
+import { createTaskExecutor } from '../../worker-src/runtime/execute_task.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -45,4 +46,36 @@ test('bridge script captures downloads without allowing the browser download to 
   assert.match(script, /if \(blockNextAnchorClick\) \{\s*blockNextAnchorClick = false;\s*return;\s*\}/);
   assert.match(script, /void captureHref\(href, filename\);\s*return;/);
   assert.match(script, /fetch\(href, \{ credentials: 'include' \}\)/);
+});
+
+test('createTaskExecutor keeps watermark metadata off bridge-backed full-size results', async () => {
+  const executeTask = createTaskExecutor({
+    selectors: {},
+    catalog,
+    hoverDelayMs: 0,
+    fetchBlob: async () => ({}),
+    captureController: { isBridgeReady: () => true },
+    getPreviewImagePayload: async () => ({
+      image_data_url: 'data:image/png;base64,preview',
+      source: 'preview',
+      watermark_removed: true,
+    }),
+    getFullSizeImagePayload: async () => ({
+      image_data_url: 'data:image/png;base64,full',
+      source: 'full_size',
+      width: 1024,
+      height: 1024,
+    }),
+  });
+
+  const result = await executeTask({
+    type: 'download_latest_image',
+    payload: {
+      input: {},
+      timeout_seconds: 60,
+    },
+  });
+
+  assert.equal(result.source, 'full_size');
+  assert.equal('watermark_removed' in result, false);
 });

@@ -39,7 +39,7 @@ uv run python -m muzilee_gemini_image_skills.server.app
 npm run build:worker
 ```
 
-把 [userscripts/gemini_web_worker.user.js](/Users/muzilee/Documents/auto-research-interns/Skills/muzilee-gemini-image-skills/userscripts/gemini_web_worker.user.js) 安装到 Tampermonkey，并打开 `https://gemini.google.com/`。
+把 [userscripts/gemini_web_worker.user.js](/Users/muzilee/Documents/GitHub/muzilee-gemini-image-skills/userscripts/gemini_web_worker.user.js) 安装到 Tampermonkey，并打开 `https://gemini.google.com/`。
 
 ## CLI
 
@@ -103,6 +103,7 @@ npm run test:worker
 
 - Agent 统一只走 `POST /agent/tasks/execute`
 - `setup` 只做公共前置动作：`new_chat`、`model`、`reference_images`
-- 当前图片读取策略固定为 preview-only，不点击 Gemini 下载按钮
-- `--output-mode` 仍接受 `preview | full_size | auto`，但内部都会按 `preview` 处理
+- preview 图片结果会在 worker 侧默认尝试去除 Gemini 水印
+- `preview` 和 `auto` 都走页面预览图提取；如果 bridge 可用，`full_size` 会点击 Gemini 下载原图
+- bridge 返回的 `full_size` 原图不做去水印处理
 - `worker-src/` 按能力拆分，`runtime/execute_task.js` 只负责调度

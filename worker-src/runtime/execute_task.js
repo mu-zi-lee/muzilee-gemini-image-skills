@@ -14,13 +14,15 @@ export function createTaskExecutor({
   hoverDelayMs,
   fetchBlob,
   captureController,
+  getPreviewImagePayload = getLatestImagePayload,
+  getFullSizeImagePayload = downloadLatestImageFullSize,
   logger = console.warn,
 }) {
   async function getLatestImageResult() {
     if (captureController?.isBridgeReady()) {
-      return downloadLatestImageFullSize(selectors, fetchBlob, hoverDelayMs, 60000);
+      return getFullSizeImagePayload(selectors, fetchBlob, hoverDelayMs, 60000);
     }
-    return getLatestImagePayload(selectors);
+    return getPreviewImagePayload(selectors);
   }
 
   return async function executeTask(task) {
@@ -84,7 +86,7 @@ export function createTaskExecutor({
       const outputMode = taskInput.output_mode || 'preview';
       const imagePayload = outputMode === 'full_size'
         ? await getLatestImageResult()
-        : await getLatestImagePayload(selectors);
+        : await getPreviewImagePayload(selectors);
       return { ...imagePayload, setup };
     }
 

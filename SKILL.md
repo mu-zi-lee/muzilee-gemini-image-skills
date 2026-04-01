@@ -30,28 +30,28 @@ description: 通过本地 Python daemon 和模块化 Tampermonkey worker 操作 
 启动 daemon：
 
 ```bash
-cd /Users/muzilee/Documents/auto-research-interns/Skills/muzilee-gemini-image-skills
+cd /Users/muzilee/Documents/GitHub/muzilee-gemini-image-skills
 uv run python -m muzilee_gemini_image_skills.server.app
 ```
 
 发送文本：
 
 ```bash
-cd /Users/muzilee/Documents/auto-research-interns/Skills/muzilee-gemini-image-skills
+cd /Users/muzilee/Documents/GitHub/muzilee-gemini-image-skills
 uv run python -m muzilee_gemini_image_skills.cli.main chat send "你好，请总结这篇文章"
 ```
 
 生成图片：
 
 ```bash
-cd /Users/muzilee/Documents/auto-research-interns/Skills/muzilee-gemini-image-skills
+cd /Users/muzilee/Documents/GitHub/muzilee-gemini-image-skills
 uv run python -m muzilee_gemini_image_skills.cli.main image generate "画一张赛博朋克城市夜景"
 ```
 
 上传参考图：
 
 ```bash
-cd /Users/muzilee/Documents/auto-research-interns/Skills/muzilee-gemini-image-skills
+cd /Users/muzilee/Documents/GitHub/muzilee-gemini-image-skills
 uv run python -m muzilee_gemini_image_skills.cli.main image upload-ref /absolute/path/ref.png
 ```
 
@@ -71,5 +71,6 @@ uv run python -m muzilee_gemini_image_skills.cli.main image upload-ref /absolute
 - 如果没有兼容 worker，要直接提示用户打开并刷新 Gemini 页面
 - 文本任务返回最终文本
 - 图片任务返回本地落盘后的文件路径
-- 当前图片任务统一走页面 preview 提取，不使用 Gemini 下载按钮
-- `--output-mode` 的 `auto` / `full_size` 仅为兼容旧命令保留，实际都会按 `preview` 执行
+- preview 图片任务会默认尝试去除 Gemini 水印
+- `preview` / `auto` 统一走页面 preview 提取
+- 如果 userscript bridge 可用，`full_size` 会走 Gemini 下载原图，且不做去水印处理
